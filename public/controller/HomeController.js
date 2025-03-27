@@ -1,5 +1,5 @@
 import { HomeModel } from "../model/HomeModel.js";
-
+import {uploadImageToCloudStorage} from "../controller/cloudstorage_controller.js";
 
 
 export class HomeController{
@@ -9,19 +9,44 @@ export class HomeController{
 
     constructor(){
         this.model = new HomeModel();
-        this.onClickGenerateDataButton = this.onClickGenerateDataButton.bind(this);
+        this.onChangeImageFile = this.onChangeImageFile.bind(this);
+        this.onSubmitAddNew =this.onSubmitAddNew.bind(this);
     }
 
     setView(view){
         this.view = view;
     }
 
-    onClickGenerateDataButton(){
-        //console.log('Generate Data button clicked');
-        //generate a random number between 1 and 100
+   async onSubmitAddNew(e){
+        e.preventDefault();
+        let imageName, imageURL ;
+        try{
+            const r = await uploadImageToCloudStorage(this.model.imageFile);
+            imageName = r.imageName;
+            imageURL = r.imageURL;
+        } catch(e){
+            console.error(e);
+            alert('Error uploading image'
+            );
+            return;
+        }
+        console.log(imageName, imageURL);
+    }
+    
 
-        const randomNumber = Math.floor(Math.random()*100)+1;
-        this.model.addNumber(randomNumber);
-        this.view.render();
+    onChangeImageFile(e){
+        console.log('HomeController.onChangeImageFile() called');
+        const imgPreview = document.getElementById('image-preview');
+        this.model.imageFile = e.target.files[0];
+        if (!this.model.imageFile){
+            imgPreview.src ='';
+            return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(this.model.imageFile);
+        reader.onload = function(){
+            imgPreview.src = reader.result;
+        };
+
     }
 }

@@ -29,7 +29,8 @@ export class HomeView extends AbstractView {
     }
 
     attachEvents() {
-       
+       document.getElementById('image-file').onchange = this.controller.onChangeImageFile;
+       document.forms.formAddNew.onsubmit = this.controller.onSubmitAddNew;
     }
 
     async onLeave() {
