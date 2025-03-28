@@ -1,8 +1,8 @@
 import { HomeModel } from "../model/HomeModel.js";
-import { uploadImageToCloudStorage } from "../controller/cloudstorage_controller.js";
+import { deleteImageFromCloudStorage, uploadImageToCloudStorage } from "../controller/cloudstorage_controller.js";
 import { currentUser } from "./firebase_auth.js";
 import { PhotoNote } from "../model/PhotoNote.js";
-import { addPhotoNoteToFirestore, getPhotoNoteListFromFirestore } from "./firestore_controller.js";
+import { addPhotoNoteToFirestore, getPhotoNoteListFromFirestore, updatePhotoNoteInFirestore, deletePhotoNoteFromFirestore } from "./firestore_controller.js";
 import { startSpinner, stopSpinner } from "../view/util.js";
 //import {} from "../view/templates/home.html";
 
@@ -129,6 +129,10 @@ export class HomeController {
         form.sharedWith.value = photoNote.sharedWith.join('; ');
         const img = form.querySelector('img');
         img.src = photoNote.imageURL;
+        form.onsubmit = function(e){
+            e.preventDefault();
+            this.onSubmitEditForm(e, photoNote);
+        }.bind(this);
 
         // display the modal
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-edit'));
@@ -136,11 +140,75 @@ export class HomeController {
 
     }
 
-    onRightClickCard(e){
+   async onSubmitEditForm(e, photoNote){
+        const form = document.forms.formEdit;
+        // validate sharedWith
+        const r = PhotoNote.validateSharedWith(form.sharedWith.value);
+        if (r != ''){
+            alert(`SharedWith: Invalid email address: ${r}`);
+            return;
+        }
+        const caption = form.caption.value;
+        const description = form.description.value;
+        const sharedWith = PhotoNote.parseSharedWith(form.sharedWith.value);
+        // verify if any changes were made
+        if(caption == photoNote.caption && description == photoNote.description && sharedWith.sort().join(';') == photoNote.sharedWith.sort().join(';')){
+            // no change => dismiss the modal
+            console.log('no change');
+            const b = document.getElementById('modal-edit-close-button');
+            b.click();
+            return;
+        }
+
+        const update = { caption, description, sharedWith, timestamp: Date.now()};
+        startSpinner();
+        try{
+            await updatePhotoNoteInFirestore(photoNote.docId, update);
+            this.model.updatePhotoNoteList(photoNote, update);
+            this.model.orderPhotoNoteListByTimestamp();
+            stopSpinner();
+            // dismiss the modal
+            const b = document.getElementById('modal-edit-close-button');
+            b.click();
+            this.view.render();
+        }catch(e){
+            stopSpinner();
+            console.error(e);
+            alert('Error updating photo note');
+            return;
+        }
+    } 
+
+    
+    // delete photonote
+    async onRightClickCard(e){
         e.preventDefault(); // prevent the context menu popup
         const card = e.currentTarget;  // element where the event listiner is attached
         const docId = card.id;
         console.log('onRightClickCard', docId);
+        const photoNote = this.model.getPhotoNoteByDocId(docId);
+        if(!photoNote){
+            console.error('onRightClickCard: photonote not found', docId);
+            return;
+        }
+        // confirm delete
+        if(!confirm('Delete this photo note?')){
+            return; // cancel delete
+        }
+        startSpinner();
+        try{
+            await deletePhotoNoteFromFirestore(photoNote.docId);
+            this.model.removePhotoNoteByDocId(photoNote.docId);
+            await deleteImageFromCloudStorage(photoNote.imageName);
+            console.log('delete succesful');
+            stopSpinner();
+            this.view.render();
+        }catch(e){
+            stopSpinner();
+            console.error(e);
+            alert('Error deleteing photo note');
+            return;
+        }
 
     }
 }

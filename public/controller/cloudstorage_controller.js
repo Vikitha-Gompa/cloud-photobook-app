@@ -3,6 +3,7 @@ import {
     ref,
     uploadBytes,
     getDownloadURL,
+    deleteObject,
  } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-storage.js"
 
  import { app } from "./firebase_core.js"
@@ -20,4 +21,11 @@ export async function uploadImageToCloudStorage(imageFile) {
     const snapShot = await uploadBytes(storageRef, imageFile);
     const imageURL = await getDownloadURL(snapShot.ref);
     return {imageName, imageURL}
+}
+
+export async function deleteImageFromCloudStorage(imageName) {
+    const  imagePath = `${IMAGE_FOLDER}/${currentUser.uid}/${imageName}`;
+    const fileRef = ref(storage, imagePath);
+    await deleteObject(fileRef);
+    
 }
