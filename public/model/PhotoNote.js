@@ -1,54 +1,56 @@
 export class PhotoNote{
     //instance variables
-    caption; description; uid; createdBy; 
+    caption; description; uid; createdBy;
     imageName; imageURL; timestamp; sharedWith; docId;
 
-
-    constructor(data) {
-        if (!data) return;
+    constructor(data){
+        if(!data) return;
         this.caption = data.caption;
         this.description = data.description;
-        
         this.uid = data.uid;
-        this.createdBy = data.createdBy; // email
+        this.createdBy = data.createdBy; //email
         this.imageName = data.imageName;
         this.imageURL = data.imageURL;
-       
         this.timestamp = data.timestamp;
-       this.sharedWith = data['sharedwith'] || [];
+        this.sharedWith = data['sharedWith'] || [];
     }
 
-    set_docId(id) {
+    set_docId(id){
         this.docId = id;
     }
 
-    // toFirestore() {
-    //     return {
-    //         title: this.title,
-    //         memo: this.memo,
-    //         uid: this.uid,
-    //         createdBy: this.createdBy,
-    //         imageName: this.imageName,
-    //         imageURL: this.imageURL,
-    //         imageClasses: this.imageClasses,
-    //         timestamp: this.timestamp,
-    //         sharedWith: this.sharedWith,
-    //     };
-    // }
+    toFirestore(){
+        return {
+            caption: this.caption,
+           description: this.description,
+           uid: this.uid,
+           createdBy: this.createdBy,
+           imageName: this.imageName,
+           imageURL: this.imageURL,
+           timestamp: this.timestamp,
+           sharedwith: this.sharedWith,
+        
+        };
+    }
 
-    // static validateSharedWith(value) {
-    //     const str = value.trim();
-    //     if (str.length == 0) {
-    //         return '';
-    //     }
-    //     const emails = str.split(/[,|;| ]+/);
-    //     let invalidMessage = '';
+    static parseSharedWith(value){
+        if(!value) return [];
+        const str = value.trim();
+        const emailList = str.split(/[,|;| ]/).map(e => e.trim()).filter(e => e.length > 0);
+        return emailList;
+    }
 
-    //     for (let i = 0; i < emails.length; i++) {
-    //         if (!(/^[0-9]+@uco\.com/.test(emails[i]))) {
-    //             invalidMessage += `${emails[i]}`;
-    //         }
-    //     }
-    //     return invalidMessage;
-    // }
+    static validateSharedWith(value){
+        const str = value.trim();
+        if(str.length === 0) return '';
+        const emailList = PhotoNote.parseSharedWith(str);
+        let invalidMessage = '';
+        for(let i=0; i < emailList.length; i++){
+            // NN@uco.com ==> valid email
+            if(!(/^[0-9]+@uco.com$/.test(emailList[i]))){
+                invalidMessage += `${emailList[i]}`;
+            }
+        }
+        return invalidMessage.trim();
+        }
 }
