@@ -64,7 +64,7 @@ export class HomeView extends AbstractView {
             </div>
             <div class="card-footer">
                 <p class="card-text">SharedWith[
-                  ${photoNote.sharedWith && photoNote.sharedWith.length > 0 ? photoNote.sharedWith.join(';') : 'Not Shared'}] </p>
+                  ${ photoNote.sharedWith.length > 0 ? photoNote.sharedWith.join(';') : 'Not Shared'}] </p>
                 <small class="text-muted"> Date: ${new Date(photoNote.timestamp).toLocaleString()} </small>
             </div>  
             </div>
