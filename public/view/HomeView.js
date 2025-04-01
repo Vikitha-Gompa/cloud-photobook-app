@@ -17,6 +17,7 @@ export class HomeView extends AbstractView {
         console.log('HomeView.onMount called ');
         await this.controller.onLoadPhotoNoteList();
         console.log('onLoadPhotoNoteList called', this.controller.model.photoNoteList);
+        console.log('photonotes',this.controller.photoNote);
     }
 
     async updateView() {
@@ -63,7 +64,7 @@ export class HomeView extends AbstractView {
             </div>
             <div class="card-footer">
                 <p class="card-text">SharedWith[
-                  ${photoNote.sharedWith.length > 0 ? photoNote.sharedWith.join(';') : 'Not Shared'}] </p>
+                  ${photoNote.sharedWith && photoNote.sharedWith.length > 0 ? photoNote.sharedWith.join(';') : 'Not Shared'}] </p>
                 <small class="text-muted"> Date: ${new Date(photoNote.timestamp).toLocaleString()} </small>
             </div>  
             </div>

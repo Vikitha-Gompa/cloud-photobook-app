@@ -59,3 +59,20 @@ export async function deletePhotoNoteFromFirestore(docId) {
     await deleteDoc(docRef);
     
 }
+
+export async function getSharedWithPhotoNoteListFromFirestore(email){
+    let photoNoteList = [];
+    const collRef = collection(db, PHOTONOTE_COLLECTION);
+    const q = query(
+        collRef,
+        where('sharedWith', 'array-contains', email),
+        orderBy('timestamp', 'desc'),
+    );
+    const snapshot = await getDocs(q);
+    snapshot.forEach(doc => {
+        const p = new PhotoNote(doc.data());
+        p.set_docId(doc.id);
+        photoNoteList.push(p);
+    });
+    return photoNoteList;
+}
