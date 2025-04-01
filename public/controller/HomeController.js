@@ -4,7 +4,7 @@ import { currentUser } from "./firebase_auth.js";
 import { PhotoNote } from "../model/PhotoNote.js";
 import { addPhotoNoteToFirestore, getPhotoNoteListFromFirestore, updatePhotoNoteInFirestore, deletePhotoNoteFromFirestore } from "./firestore_controller.js";
 import { startSpinner, stopSpinner } from "../view/util.js";
-//import {} from "../view/templates/home.html";
+import{getImageDescription} from "./gemini_vision.js";
 
 export class HomeController {
     // instance members
@@ -111,7 +111,7 @@ export class HomeController {
         }
     }
 
-    onClickCard(e){
+    async onClickCard(e){
         const card = e.currentTarget;  // element where the event listiner is attached
         const docId = card.id;
         console.log('onClickCard', docId);
@@ -137,6 +137,28 @@ export class HomeController {
         // display the modal
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-edit'));
         modal.show();
+
+        if(photoNote.description){
+            return;
+        }
+        if(!confirm('Do you want to generate a description for this image by Gemini?')){
+            return;
+        }
+
+        // call cloud function to generate image description
+        startSpinner();
+        try{
+            const result = await getImageDescription(photoNote.imageURL);
+            console.log('result',result);
+            form.description.value = result;
+            stopSpinner();
+        } catch(e){
+            stopSpinner();
+            console.error(e);
+            alert('Error generating image description');
+
+            
+        }
 
     }
 

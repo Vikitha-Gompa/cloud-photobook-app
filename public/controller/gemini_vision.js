@@ -1,6 +1,7 @@
 import {
     getFunctions,
     httpsCallable,
+    connectFunctionsEmulator,
  } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-functions.js";
 import {app} from "./firebase_core.js";
 
