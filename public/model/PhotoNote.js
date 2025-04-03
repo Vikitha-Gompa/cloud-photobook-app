@@ -28,7 +28,7 @@ export class PhotoNote{
            imageName: this.imageName,
            imageURL: this.imageURL,
            timestamp: this.timestamp,
-           sharedwith: this.sharedWith,
+           sharedWith: this.sharedWith,
         
         };
     }
